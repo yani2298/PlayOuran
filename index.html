@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Play Quran</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- Polices arabes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Lateef&family=Harmattan&family=Noto+Nastaliq+Urdu:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Style des boutons de téléchargement -->
+  <link rel="stylesheet" href="download-buttons.css">
+  <link rel="stylesheet" href="download-info-panel.css">
+  <style>
+    /* Styles pour les autres boutons et sélecteurs */
+    #play-button, #pause-button, .reciter-select, .translation-select {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    #play-button:hover, #pause-button:hover, .reciter-select:hover, .translation-select:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Effet subtil pour les boutons audio */
+    .audio-button {
+      position: relative;
+      overflow: visible;
+    }
+    
+    .audio-button::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 10%;
+      width: 80%;
+      height: 4px;
+      background: rgba(120, 120, 255, 0.3);
+      filter: blur(3px);
+      border-radius: 50%;
+      z-index: -1;
+    }
+    
+    @keyframes blend {
+      to { background-position: 500% 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Zone de drag transparente pour déplacer la fenêtre -->
+  <div class="window-drag-area"></div>
+  
+  <div class="app-container">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-icons">
+          <!-- Mode sombre/clair style SF Symbols -->
+          <button id="theme-toggle" class="theme-toggle" title="Changer le thème">
+            <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            </svg>
+            <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </button>
+          
+          <!-- Météo style SF Symbols -->
+          <button id="weather-toggle" class="sidebar-icon-button" title="Météo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+            </svg>
+          </button>
+          
+          <!-- Mosquée - icône améliorée -->
+          <button id="prayer-toggle" class="sidebar-icon-button" title="Horaires de prière">
+            <img src="dome.svg" width="18" height="18" class="sf-icon domeIcon" alt="Prière">
+          </button>
+        </div>
+      </div>
+      
+      <div class="search-container">
+        <input type="text" id="search-input" placeholder="Rechercher une sourate...">
+      </div>
+      <div class="surah-list-container">
+        <div id="surah-list" class="surah-list"></div>
+      </div>
+      <div class="sidebar-footer">
+        <button id="load-surahs" class="primary-button">Charger les Sourates</button>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="content-header">
+        <div id="surah-info"></div>
+        <div class="audio-controls">
+          <select id="reciter-select" class="reciter-select"></select>
+          <select id="translation-select" class="translation-select"></select>
+          <button id="play-button" class="audio-button" disabled title="Lire">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+            </svg>
+          </button>
+          <button id="pause-button" class="audio-button" disabled title="Pause">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div id="quran-content" class="quran-content">
+        <div class="welcome-screen">
+          <div class="welcome-icon animated">
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="book-icon">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              <path class="book-page" d="M12 6l8 0"></path>
+              <path class="book-page" d="M12 10l8 0"></path>
+              <path class="book-page" d="M12 14l8 0"></path>
+            </svg>
+          </div>
+          <div class="welcome-text-container">
+            <h2 class="welcome-title">Bienvenue sur Play Quran</h2>
+            <p class="welcome-text">Cliquez sur "Charger les Sourates" pour commencer</p>
+            <p class="welcome-subtext">votre lecture</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="audio-player">
+        <div class="verse-info-container">
+          <div class="equalizer">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <span id="verse-info">Sourate: -- | Verset: --</span>
+        </div>
+        
+        <div class="audio-info">
+          <span id="current-time">0:00</span>
+          <span id="duration">0:00</span>
+        </div>
+        <audio id="audio-player" controls style="display: none;"></audio>
+        <div id="audio-progress" class="audio-progress">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div class="playback-controls">
+          <button id="previous-verse" class="control-button" disabled title="Verset précédent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 17l-5-5 5-5"></path>
+              <path d="M18 17l-5-5 5-5"></path>
+            </svg>
+          </button>
+          <button id="play-button-main" class="control-button" disabled title="Lire">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+            </svg>
+          </button>
+          <button id="pause-button-main" class="control-button" disabled title="Pause" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </button>
+          <button id="next-verse" class="control-button" disabled title="Verset suivant">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 17l5-5-5-5"></path>
+              <path d="M6 17l5-5-5-5"></path>
+            </svg>
+          </button>
+          <button id="repeat-verse" class="control-button" title="Répéter le verset">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 2v6h6"></path>
+              <path d="M3 8c0 3.3 2.7 6 6 6 1.4 0 2.8-.5 3.9-1.4l7.8-7.9 1.3 1.3-7.8 7.9c-3 3-7.8 3-10.8 0-3-3-3-7.8 0-10.8 3-3 7.8-3 10.8 0L21 10"></path>
+            </svg>
+          </button>
+          <div class="volume-container">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Mini lecteur flottant pour la navigation mobile -->
+  <div class="mini-player" id="mini-player">
+    <div class="mini-player-info">
+      <h4 id="mini-surah-name">--</h4>
+      <p id="mini-verse-number">Verset: --</p>
+    </div>
+    <div class="mini-player-controls">
+      <button id="mini-prev" class="control-button" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 17l-5-5 5-5"></path>
+        </svg>
+      </button>
+      <button id="mini-play" class="mini-player-button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="6 3 20 12 6 21 6 3"></polygon>
+        </svg>
+      </button>
+      <button id="mini-next" class="control-button" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 17l5-5-5-5"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="mini-progress">
+      <div class="mini-progress-bar" id="mini-progress-bar"></div>
+    </div>
+  </div>
+
+  <!-- Modal météo -->
+  <div id="weather-modal" class="ios-modal">
+    <div class="ios-modal-backdrop"></div>
+    <div class="ios-modal-panel">
+      <div class="weather-app">
+        <!-- En-tête plus propre sans hamburger menu -->
+        <div class="weather-header">
+          <div class="system-time">
+            <span id="weather-time">--:--</span>
+          </div>
+          <div class="icon-button" id="weather-modal-close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Informations principales -->
+        <div class="city-info">
+          <h2 class="city-name">Chargement...</h2>
+          <p class="weather-desc">Récupération des données météo...</p>
+          <div id="debug-info" style="font-size:10px; color:#999;"></div>
+        </div>
+        
+        <!-- Image et température dans une disposition style iOS -->
+        <div class="weather-main-info">
+          <div class="weather-image">
+            <img src="https://openweathermap.org/img/wn/10d@4x.png" alt="Météo" class="weather-icon-large">
+          </div>
+          <div class="temperature">
+            <div class="main-temp">--°</div>
+            <div class="feels-like">Ressenti: --°</div>
+          </div>
+        </div>
+        
+        <!-- Détails météo (humidité et vent) -->
+        <div class="weather-details">
+          <div class="detail-item humidity-detail">
+            <div class="detail-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+              </svg>
+            </div>
+            <div class="detail-label">Humidité</div>
+            <div class="detail-value">--%</div>
+          </div>
+          
+          <div class="detail-item wind-detail">
+            <div class="detail-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path>
+              </svg>
+            </div>
+            <div class="detail-label">Vent</div>
+            <div class="detail-value">-- km/h</div>
+          </div>
+        </div>
+        
+        <!-- Indicateurs de qualité : style design iOS avec coins arrondis et couleurs douces -->
+        <div class="quality-indicators">
+          <div class="quality-item">
+            <div class="quality-badge low">Faible</div>
+            <div class="quality-label">UV</div>
+          </div>
+          
+          <div class="quality-item">
+            <div class="quality-badge low">Faible</div>
+            <div class="quality-label">Pollution</div>
+          </div>
+          
+          <div class="quality-item">
+            <div class="quality-badge moderate">Modéré</div>
+            <div class="quality-label">Pollen</div>
+          </div>
+        </div>
+        
+        <!-- Prévisions style iOS Weather app -->
+        <div class="forecast-section">
+          <h3 class="forecast-title">Prévisions de la semaine</h3>
+          <div class="forecast-row">
+            <div class="forecast-item">
+              <div class="forecast-day">Demain</div>
+              <div class="forecast-icon">
+                <img src="https://openweathermap.org/img/wn/10d.png" alt="Météo" class="forecast-icon-img">
+              </div>
+              <div class="forecast-temp">--°</div>
+            </div>
+            
+            <div class="forecast-item">
+              <div class="forecast-day">--</div>
+              <div class="forecast-icon">
+                <img src="https://openweathermap.org/img/wn/10d.png" alt="Météo" class="forecast-icon-img">
+              </div>
+              <div class="forecast-temp">--°</div>
+            </div>
+            
+            <div class="forecast-item">
+              <div class="forecast-day">--</div>
+              <div class="forecast-icon">
+                <img src="https://openweathermap.org/img/wn/10d.png" alt="Météo" class="forecast-icon-img">
+              </div>
+              <div class="forecast-temp">--°</div>
+            </div>
+            
+            <div class="forecast-item">
+              <div class="forecast-day">--</div>
+              <div class="forecast-icon">
+                <img src="https://openweathermap.org/img/wn/10d.png" alt="Météo" class="forecast-icon-img">
+              </div>
+              <div class="forecast-temp">--°</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prayer Times Modal Panel -->
+  <div id="prayer-modal" class="ios-modal">
+    <div class="ios-modal-backdrop"></div>
+    <div class="ios-modal-panel">
+      <div class="prayer-app">
+        <!-- En-tête style météo -->
+        <div class="weather-header">
+          <div class="system-time">
+            <span id="prayer-time">--:--</span>
+          </div>
+          <div class="icon-button" id="prayer-modal-close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Titre stylisé avec ville -->
+        <div class="city-info">
+          <h2 class="city-name" id="prayer-city-name">Horaires de Prière</h2>
+          <div class="prayer-date-display">
+            <div class="prayer-gregorian" id="prayer-gregorian-date">--</div>
+            <div class="prayer-hijri" id="prayer-hijri-date">--</div>
+          </div>
+          <!-- Compte à rebours jusqu'à la prochaine prière -->
+          <div class="next-prayer-countdown">Chargement...</div>
+        </div>
+        
+        <div class="prayer-container">
+          <!-- Horaires des prières -->
+          <div class="prayer-times-container">
+            <div class="prayer-card" id="fajr-card">
+              <div class="prayer-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <p class="prayer-name">Fajr</p>
+                <p class="prayer-time" id="fajr-time">--:--</p>
+              </div>
+            </div>
+            <div class="prayer-card" id="sunrise-card">
+              <div class="prayer-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 18a5 5 0 0 0-10 0"></path>
+                  <line x1="12" y1="2" x2="12" y2="9"></line>
+                  <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                  <line x1="1" y1="18" x2="3" y2="18"></line>
+                  <line x1="21" y1="18" x2="23" y2="18"></line>
+                  <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                  <line x1="23" y1="22" x2="1" y2="22"></line>
+                  <polyline points="8 6 12 2 16 6"></polyline>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <p class="prayer-name">Lever du soleil</p>
+                <p class="prayer-time" id="sunrise-time">--:--</p>
+              </div>
+            </div>
+            <div class="prayer-card" id="dhuhr-card">
+              <div class="prayer-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <p class="prayer-name">Dhuhr</p>
+                <p class="prayer-time" id="dhuhr-time">--:--</p>
+              </div>
+            </div>
+            <div class="prayer-card" id="asr-card">
+              <div class="prayer-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <p class="prayer-name">Asr</p>
+                <p class="prayer-time" id="asr-time">--:--</p>
+              </div>
+            </div>
+            <div class="prayer-card" id="maghrib-card">
+              <div class="prayer-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 18a5 5 0 0 0-10 0"></path>
+                  <line x1="12" y1="9" x2="12" y2="2"></line>
+                  <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+                  <line x1="1" y1="18" x2="3" y2="18"></line>
+                  <line x1="21" y1="18" x2="23" y2="18"></line>
+                  <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+                  <line x1="23" y1="22" x2="1" y2="22"></line>
+                  <polyline points="16 6 12 2 8 6"></polyline>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <p class="prayer-name">Maghrib</p>
+                <p class="prayer-time" id="maghrib-time">--:--</p>
+              </div>
+            </div>
+            <div class="prayer-card" id="isha-card">
+              <div class="prayer-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path>
+                </svg>
+              </div>
+              <div class="prayer-info">
+                <p class="prayer-name">Isha</p>
+                <p class="prayer-time" id="isha-time">--:--</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="prayer-calculation-method">
+            Méthode de calcul: Islamic Society of North America (ISNA)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotify Player Modal -->
+  <div id="spotify-player-modal" class="ios-modal">
+    <div class="spotify-modal-backdrop"></div>
+    <div class="spotify-modal-panel">
+      <div class="spotify-player-container">
+        <!-- Sidebar with reciters -->
+        <div class="spotify-sidebar">
+          <div class="spotify-search">
+            <div class="spotify-search-container">
+              <svg class="spotify-search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" class="spotify-search-input" placeholder="Rechercher un récitateur..." id="spotify-search-input">
+            </div>
+          </div>
+          
+          <!-- Menu Spotify -->
+          <div class="spotify-menu">
+            <div class="spotify-menu-item active" id="spotify-home">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span>Accueil</span>
+            </div>
+            <div class="spotify-menu-item" id="spotify-favorites">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+              </svg>
+              <span>Favoris</span>
+            </div>
+            <div class="spotify-menu-item" id="spotify-playlists">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15V6"></path>
+                <path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"></path>
+                <path d="M12 12H3"></path>
+                <path d="M16 6H3"></path>
+                <path d="M12 18H3"></path>
+              </svg>
+              <span>Playlists</span>
+            </div>
+            <div class="spotify-menu-item" id="spotify-downloaded">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Téléchargés</span>
+            </div>
+          </div>
+
+          <div class="spotify-reciters-list" id="spotify-reciters-list">
+            <!-- Reciters will be loaded here -->
+          </div>
+        </div>
+        
+        <!-- Main content area -->
+        <div class="spotify-main-content">
+          <div class="spotify-header">
+            <div class="spotify-navigation">
+              <button class="spotify-nav-button" id="spotify-nav-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m15 18-6-6 6-6"></path>
+                </svg>
+              </button>
+              <button class="spotify-nav-button" id="spotify-nav-forward">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m9 18 6-6-6-6"></path>
+                </svg>
+              </button>
+            </div>
+            <h3 style="color: white; font-weight: 700;">Récitations Coraniques</h3>
+            <button class="spotify-close-button" id="spotify-close-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Section d'accueil -->
+          <div class="spotify-content-section" id="spotify-home-section">
+            
+            <div class="spotify-reciter-header" id="spotify-reciter-header">
+              <img src="assets/images/reciters/default_reciter.jpg" class="spotify-reciter-header-img" alt="Reciter" id="spotify-current-reciter-img" onerror="this.src='assets/images/reciters/default_reciter.jpg'">
+              <div class="spotify-reciter-header-info">
+                <h2 class="spotify-reciter-header-title" id="spotify-current-reciter-name">Sélectionnez un récitateur</h2>
+                <p class="spotify-reciter-header-subtitle">Style de récitation classique</p>
+                <div class="spotify-reciter-actions">
+                  <button class="spotify-action-button" id="spotify-play-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Tout lire
+                  </button>
+                  <button class="spotify-action-button spotify-secondary" id="spotify-add-to-favorites">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                    </svg>
+                    Ajouter aux favoris
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Section Playlists -->
+          <div class="spotify-content-section hidden" id="spotify-playlists-section">
+            <h2 class="spotify-section-title">Mes Playlists</h2>
+            <div class="spotify-create-playlist">
+              <button class="spotify-action-button" id="spotify-create-playlist">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Créer une playlist
+              </button>
+            </div>
+            <div class="spotify-playlists-container" id="spotify-playlists-container">
+              <!-- Playlists will be loaded here -->
+            </div>
+          </div>
+          
+          <!-- Section Favoris -->
+          <div class="spotify-content-section hidden" id="spotify-favorites-section">
+            <h2 class="spotify-section-title">Mes Favoris</h2>
+            <div class="spotify-favorites-container" id="spotify-favorites-container">
+              <!-- Favorites will be loaded here -->
+            </div>
+          </div>
+          
+          <!-- Section Téléchargements -->
+          <div class="spotify-content-section hidden" id="spotify-downloaded-section">
+            <h2 class="spotify-section-title">Récitations Téléchargées</h2>
+            <div class="spotify-downloaded-container" id="spotify-downloaded-container">
+              <!-- Downloaded recitations will be loaded here -->
+            </div>
+          </div>
+          
+          <div class="spotify-surah-table">
+            <div class="spotify-surah-table-header">
+              <div>#</div>
+              <div>NOM</div>
+              <div>HORS LIGNE</div>
+              <div>DURÉE</div>
+              <div></div>
+            </div>
+            <div class="spotify-surah-list" id="spotify-surah-list">
+              <!-- Surahs will be loaded here -->
+            </div>
+          </div>
+          
+          <div class="spotify-recently-played">
+            <h2 class="spotify-section-title" style="font-size: 16px; margin-bottom: 10px;">Écoutés récemment</h2>
+            <div class="spotify-recent-items" id="spotify-recent-items">
+              <!-- Recent items will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Player footer -->
+      <div class="spotify-player-footer">
+        <div class="spotify-now-playing">
+          <img src="assets/images/reciters/default_reciter.jpg" class="spotify-now-playing-img" id="spotify-playing-img" alt="Now Playing" onerror="this.src='assets/images/reciters/default_reciter.jpg'">
+          <div class="spotify-now-playing-info">
+            <div class="spotify-now-playing-name" id="spotify-playing-name">Sourate non sélectionnée</div>
+            <div class="spotify-now-playing-reciter" id="spotify-playing-reciter">Aucun récitateur</div>
+          </div>
+          <button class="spotify-like-button" id="spotify-like-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="spotify-player-controls">
+          <div class="spotify-control-buttons">
+            <button class="spotify-control-button" id="spotify-shuffle">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 3 21 3 21 8"></polyline>
+                <line x1="4" y1="20" x2="21" y2="3"></line>
+                <polyline points="21 16 21 21 16 21"></polyline>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+                <line x1="4" y1="4" x2="9" y2="9"></line>
+              </svg>
+            </button>
+            <button class="spotify-control-button" id="spotify-prev">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                <line x1="5" y1="19" x2="5" y2="5"></line>
+              </svg>
+            </button>
+            <button class="spotify-play-button" id="spotify-play">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </button>
+            <button class="spotify-control-button" id="spotify-next">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                <line x1="19" y1="5" x2="19" y2="19"></line>
+              </svg>
+            </button>
+            <button class="spotify-control-button" id="spotify-repeat">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="17 1 21 5 17 9"></polyline>
+                <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                <polyline points="7 23 3 19 7 15"></polyline>
+                <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="spotify-progress">
+            <div class="spotify-progress-time" id="spotify-current-time">0:00</div>
+            <div class="spotify-progress-bar">
+              <div class="spotify-progress-current" id="spotify-progress-current" style="width: 0%;"></div>
+            </div>
+            <div class="spotify-progress-time" id="spotify-total-time">0:00</div>
+          </div>
+        </div>
+        
+        <div class="spotify-volume-controls">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="spotify-volume-icon">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <div class="spotify-volume-slider">
+            <div class="spotify-volume-current" id="spotify-volume-current" style="width: 70%;"></div>
+          </div>
+          
+          <button class="spotify-control-button" id="spotify-mini-player-toggle" title="Mode plein écran">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3"></path>
+              <path d="M21 8V5a2 2 0 0 0-2-2h-3"></path>
+              <path d="M3 16v3a2 2 0 0 0 2 2h3"></path>
+              <path d="M16 21h3a2 2 0 0 0 2-2v-3"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Hidden audio element for the Spotify player -->
+      <audio id="spotify-audio-player" style="display: none;"></audio>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+  <script src="renderer.js"></script>
+  <script src="download-manager.js"></script>
+  
+  <!-- Nouveaux fichiers pour le système de téléchargement avancé -->
+  <script src="download-db.js"></script>
+  <script src="advanced-download-manager.js"></script>
+  <script src="download-integration.js"></script>
+  <script src="download-ui-enhancements.js"></script>
+  <script src="about-section.js"></script>
+  <script>
+    // Initialiser le gestionnaire de téléchargement avancé après le chargement
+    document.addEventListener('DOMContentLoaded', function() {
+      // Si advancedDownloadManager est disponible, restaurer les téléchargements
+      if (typeof advancedDownloadManager !== 'undefined') {
+        setTimeout(() => {
+          advancedDownloadManager.restoreDownloadState();
+        }, 2000); // Attendre que l'application soit chargée
+      }
+    });
+  </script>
+</body>
+</html> 

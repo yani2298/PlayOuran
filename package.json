@@ -1,0 +1,83 @@
+{
+  "name": "playquran",
+  "version": "1.5.0",
+  "description": "Application moderne pour lire et écouter le Saint Coran",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:universal": "electron-builder --mac --universal"
+  },
+  "build": {
+    "appId": "com.playquran.app",
+    "productName": "PlayOuran",
+    "executableName": "PlayOuran",
+    "electronDownload": {
+      "mirror": "https://github.com/electron/electron/releases/download/",
+      "cache": ".electron-cache"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{.travis,.istanbul,.eslintrc,.github,jsconfig.json}"
+    ],
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "${productName}-${version}-Universal.${ext}",
+      "icon": "assets/images/quran-icon.icns",
+      "darkModeSupport": true,
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "background": "assets/images/quran-icon.png",
+      "icon": "assets/images/quran-icon.icns",
+      "iconSize": 100,
+      "title": "${productName} ${version}",
+      "contents": [
+        {
+          "x": 380,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 130,
+          "y": 190,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    }
+  },
+  "author": {
+    "name": "Anis Mosbah",
+    "email": "contact@playquran.app",
+    "url": "https://playquran.app"
+  },
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "electron": "^35.1.3",
+    "electron-builder": "^26.0.12",
+    "electron-notarize": "^1.2.2"
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.2"
+  }
+}

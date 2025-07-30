@@ -1,0 +1,100 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Distribution files (DMG, ZIP, etc.)
+*.dmg
+*.zip
+*.tar.gz
+*.rar
+
+# Electron build artifacts
+*.exe
+*.deb
+*.rpm
+*.AppImage
+
+# Cache
+.npm
+.eslintcache
+.cache/
+
+# Runtime and debug files
+*.tsbuildinfo
+.nyc_output
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Electron cache
+.electron-cache/
+
+# Application cache
+app.asar.unpacked/
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# API keys and sensitive data
+config/keys.js
+src/config/keys.js
+
+# Backup files
+*.backup
+*.bak
+*.tmp
