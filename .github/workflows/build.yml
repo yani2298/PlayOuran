@@ -1,0 +1,144 @@
+name: 🏗️ Build & Release PlayOuran
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: 🧪 Test & Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 📦 Install Dependencies
+        run: npm ci
+        
+      - name: 🔍 Run Linting
+        run: npm run lint --if-present
+        
+      - name: 🧪 Run Tests
+        run: npm test --if-present
+        
+      - name: 📊 Upload Coverage
+        uses: codecov/codecov-action@v3
+        if: success()
+
+  build:
+    name: 🏗️ Build for ${{ matrix.os }}
+    needs: test
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+            artifact: PlayOuran-*.dmg
+          - os: windows-latest
+            platform: win
+            artifact: PlayOuran-*.exe
+          - os: ubuntu-latest
+            platform: linux
+            artifact: PlayOuran-*.AppImage
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 📦 Install Dependencies
+        run: npm ci
+        
+      - name: 🏗️ Build Application
+        run: |
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            npm run build:mac
+          elif [ "${{ matrix.platform }}" = "win" ]; then
+            npm run build:win
+          else
+            npm run build:linux
+          fi
+        shell: bash
+        
+      - name: 📁 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: playouran-${{ matrix.platform }}-${{ github.sha }}
+          path: dist/${{ matrix.artifact }}
+          retention-days: 30
+
+  release:
+    name: 🚀 Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: 📁 Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          
+      - name: 📝 Generate Release Notes
+        id: release_notes
+        run: |
+          echo "## 🌙 PlayOuran Release ${{ github.ref_name }}" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### ✨ What's New in This Release" >> release_notes.md
+          echo "- Updated Quranic content and recitations" >> release_notes.md
+          echo "- Enhanced prayer time calculations" >> release_notes.md
+          echo "- Bug fixes and performance improvements" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📥 Download for Your Platform" >> release_notes.md
+          echo "- **🍎 macOS**: Download the .dmg file below" >> release_notes.md
+          echo "- **🪟 Windows**: Download the .exe file below" >> release_notes.md
+          echo "- **🐧 Linux**: Download the .AppImage file below" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 🔧 Installation" >> release_notes.md
+          echo "Please refer to our [README](https://github.com/${{ github.repository }}#-download--installation---get-started-in-minutes) for detailed installation instructions." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "---" >> release_notes.md
+          echo "**🤲 May Allah accept this work as Sadaqah for the Muslim Ummah**" >> release_notes.md
+          
+      - name: 🏷️ Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/**/*
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: 📢 Notify Community
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: 🕌 Islamic Release Notification
+        run: |
+          echo "🌙 Alhamdulillah! PlayOuran ${{ github.ref_name }} has been released!"
+          echo "📥 Download from: https://github.com/${{ github.repository }}/releases/latest"
+          echo "🤲 Please make dua for this project to benefit the Muslim Ummah worldwide."

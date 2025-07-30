@@ -98,3 +98,32 @@ src/config/keys.js
 *.backup
 *.bak
 *.tmp
+*.recent
+*_backup.*
+renderer_backup.js
+style.css.recent
+
+# Build and deployment scripts
+build-universal.sh
+create_app.sh
+dmg-bg.html
+
+# Development files to exclude from repository
+CHANGELOG.md
+docs/
+
+# Temporary and test files
+tmp/
+temp/
+.tmp/
+
+# Platform-specific build files
+*.iconset/
+*.nsis
+*.desktop
+
+# Security files
+*.p12
+*.pem
+*.key
+*.cer

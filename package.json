@@ -1,13 +1,17 @@
 {
   "name": "playquran",
   "version": "1.5.0",
-  "description": "Application moderne pour lire et écouter le Saint Coran",
+  "description": "🕌 Modern Quran reading app with prayer times, hadith, and Islamic utilities for desktop. Cross-platform Islamic software for Muslims worldwide. Features beautiful Arabic typography, multiple reciters, offline reading, and comprehensive Islamic tools.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
-    "build:universal": "electron-builder --mac --universal"
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:universal": "electron-builder --mac --universal",
+    "lint": "echo 'Linting not configured yet'",
+    "test": "echo 'Tests not configured yet'"
   },
   "build": {
     "appId": "com.playquran.app",
@@ -33,7 +37,7 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64"]
+          "arch": ["x64", "arm64"]
         }
       ],
       "artifactName": "${productName}-${version}-Universal.${ext}",
@@ -41,6 +45,27 @@
       "darkModeSupport": true,
       "hardenedRuntime": true,
       "gatekeeperAssess": false
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/images/quran-icon.png",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/images/quran-icon.png",
+      "category": "Education",
+      "artifactName": "${productName}-${version}.${ext}"
     },
     "dmg": {
       "background": "assets/images/quran-icon.png",
