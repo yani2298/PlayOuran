@@ -1,7 +1,7 @@
 # 🕌 PlayOuran - Modern Quran Reading App for macOS
 
 [![GitHub release](https://img.shields.io/github/v/release/yani2298/PlayOuran?style=for-the-badge&logo=github)](https://github.com/yani2298/PlayOuran/releases)
-[![License MIT](https://img.shields.io/github/license/yani2298/PlayOuran?style=for-the-badge&color=green)](LICENSE)
+[![License CC BY-NC-SA](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-red?style=for-the-badge)](LICENSE)
 [![macOS Support](https://img.shields.io/badge/Platform-macOS-blue?style=for-the-badge&logo=apple)](https://www.apple.com/macos/)
 [![Built with Electron](https://img.shields.io/badge/Built%20with-Electron-47848f?style=for-the-badge&logo=electron)](https://electronjs.org/)
 [![French Interface](https://img.shields.io/badge/Interface-Français-blue?style=for-the-badge)](https://fr.wikipedia.org/wiki/Français)
@@ -38,7 +38,19 @@
 ## 🖼️ Screenshots
 
 <div align="center">
-  <img src="assets/images/app-preview.png" alt="PlayOuran Interface" width="80%">
+
+### **Interface Principale - Lecture du Coran**
+<img width="1489" height="966" alt="PlayOuran - Interface de lecture du Coran" src="https://github.com/user-attachments/assets/ee74d0bf-ff9d-4e09-a8b6-7e5c035598ee" />
+
+### **Sélection des Sourates**
+<img width="1489" height="966" alt="PlayOuran - Sélection des sourates" src="https://github.com/user-attachments/assets/364eb8c6-a337-4d06-99a3-d90ebc20319d" />
+
+### **Heures de Prière et Méteo**
+<img width="1489" height="966" alt="PlayOuran - Heures de prière" src="https://github.com/user-attachments/assets/9d46f3c1-1a29-49ef-afe0-a799390e4558" />
+
+### **Interface Complète de l'Application**
+<img width="1489" height="966" alt="PlayOuran - Vue d'ensemble" src="https://github.com/user-attachments/assets/f981d9f6-edc4-4a92-8e94-1c854117aeee" />
+
 </div>
 
 ## 📥 Download & Installation
@@ -144,13 +156,22 @@ We welcome contributions from the Muslim developer community!
 
 ## 📄 **License**
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0** - see the [LICENSE](LICENSE) file for details.
 
-### **MIT License Benefits**
-- ✅ **Free to use** for personal and commercial projects
-- ✅ **Modify and distribute** the software
-- ✅ **No restrictions** on usage
-- ✅ **Simple and permissive** license
+### **📋 What You CAN Do**
+- ✅ **Personal use** - Use for your own spiritual practice
+- ✅ **Educational use** - Use in schools, mosques, Islamic centers
+- ✅ **Modify and share** - Adapt the software and share improvements
+- ✅ **Community projects** - Use in non-profit Islamic initiatives
+
+### **❌ What You CANNOT Do**
+- ❌ **Commercial use** - Selling or using for profit is STRICTLY PROHIBITED
+- ❌ **Paid distribution** - Cannot include in paid software packages
+- ❌ **Revenue generation** - Cannot use to make money in any form
+- ❌ **Commercial apps** - Cannot integrate into commercial products
+
+### **🕌 Islamic Principles**
+This software is developed as **Sadaqah (charity)** for the Muslim Ummah. Commercial exploitation goes against the charitable spirit of this project.
 
 ## 🙏 **Acknowledgments**
 
