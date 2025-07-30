@@ -8,7 +8,11 @@
 
 > **🌙 The most beautiful and feature-rich Quran reading application for desktop. Experience the Holy Quran with stunning typography, multiple reciters, prayer times, and Islamic utilities - all in one modern, cross-platform app.**
 
-<div align="center">
+<div al<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 31" src="https://github.com/user-attachments/assets/ee74d0bf-ff9d-4e09-a8b6-7e5c035598ee" />
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 25" src="https://github.com/user-attachments/assets/364eb8c6-a337-4d06-99a3-d90ebc20319d" />
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 18" src="https://github.com/user-attachments/assets/9d46f3c1-1a29-49ef-afe0-a799390e4558" />
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 12" src="https://github.com/user-attachments/assets/f981d9f6-edc4-4a92-8e94-1c854117aeee" />
+ign="center">
 
 ### 📖 **Perfect for Muslims worldwide seeking a comprehensive digital Quran experience** 🌍
 
