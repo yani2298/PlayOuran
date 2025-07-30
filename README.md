@@ -15,6 +15,10 @@
 **Keywords**: *quran app, islamic software, quran reader, french islamic app, lecteur coran, logiciel islamique*
 
 </div>
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 25" src="https://github.com/user-attachments/assets/e249d390-e647-43d7-ae47-de2f385fc593" />
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 31" src="https://github.com/user-attachments/assets/8262c73c-2a3b-4759-8a40-85ffeba2af4e" />
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 18" src="https://github.com/user-attachments/assets/308d5911-4550-4f10-b404-cf256ee4677a" />
+<img width="1489" height="966" alt="CleanShot 2025-07-30 at 16 54 12" src="https://github.com/user-attachments/assets/491c00e9-5a5f-4567-9962-ccbbbcb42754" />
 
 ## ✨ Current Features
 
